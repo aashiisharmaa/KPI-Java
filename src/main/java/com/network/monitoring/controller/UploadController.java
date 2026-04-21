@@ -63,13 +63,14 @@ public class UploadController {
     }
 
     @DeleteMapping("/uploads/{id}")
-    public ResponseEntity<Map<String, Object>> deleteUpload(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> deleteUpload(@PathVariable("id") Long id) {
         try {
             return ResponseEntity.ok(uploadService.deleteUpload(id));
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(errorResponse(ex.getMessage()));
         } catch (Exception ex) {
-            return ResponseEntity.status(500).body(errorResponse(ex.getMessage()));
+            ex.printStackTrace();
+            return ResponseEntity.status(500).body(errorResponse(ex.toString()));
         }
     }
 

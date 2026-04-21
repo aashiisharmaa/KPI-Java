@@ -7,6 +7,7 @@ import com.network.monitoring.repository.UserRepository;
 import com.network.monitoring.security.JwtService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -71,11 +72,12 @@ public class AuthService {
         return createSessionAndRespond(user);
     }
 
+    @Transactional
     public void logout(String token) {
         if (token == null || token.isBlank()) {
             return;
         }
-        sessionRepository.deleteByToken(token);
+        sessionRepository.findByToken(token).ifPresent(sessionRepository::delete);
     }
 
     private AuthResult createSessionAndRespond(User user) {

@@ -19,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -121,13 +122,17 @@ public class UploadService {
         return Map.of("success", true, "data", uploads);
     }
 
+    @Transactional
     public Map<String, Object> deleteUpload(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Upload id is required.");
         }
-        alarmDataRepository.deleteByFileId(id);
-        uploadDataRepository.deleteByFileId(id);
-        uploadHistoryRepository.deleteById(id);
+        alarmDataRepository.findAllByFileId(id).forEach(alarmDataRepository::delete);
+        uploadDataRepository.findAllByFileId(id).forEach(uploadDataRepository::delete);
+        alarmDataRepository.flush();
+        uploadDataRepository.flush();
+        uploadHistoryRepository.findById(id).ifPresent(uploadHistoryRepository::delete);
+        uploadHistoryRepository.flush();
         kpiCacheService.deleteKpiCache(id);
         clearRedisKpiCaches(id);
         return Map.of("success", true, "message", "Upload and related KPI/alarm data deleted successfully");

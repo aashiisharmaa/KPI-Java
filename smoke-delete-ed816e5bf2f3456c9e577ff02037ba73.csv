@@ -1,0 +1,2 @@
+date,cell_name,site,band,tech,sector_id,sector_name,groups,ul_prb_utilization_rate
+2026-04-21T00:00:00,CellSmoke,SiteSmoke,1800,LTE,S1,SectorSmoke,GroupSmoke,12.5

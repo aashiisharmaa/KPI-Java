@@ -112,7 +112,7 @@ public class RecommendationController {
     }
 
     @GetMapping("/presets/{name}")
-    public ResponseEntity<Map<String, Object>> loadPreset(@PathVariable String name) {
+    public ResponseEntity<Map<String, Object>> loadPreset(@PathVariable("name") String name) {
         try {
             if (name == null || name.isBlank()) {
                 return ResponseEntity.badRequest().body(errorResponse("Preset name is required."));

@@ -112,54 +112,20 @@ public class RecommendationService {
     }
 
     public void savePreset(String name, Map<String, Object> config) throws IOException {
-        ensurePythonEntry();
-        Path workDir = Files.createTempDirectory("rca-preset-");
-        try {
-            Path configPath = workDir.resolve("preset.json");
-            Files.writeString(configPath, mapper.writerWithDefaultPrettyPrinter().writeValueAsString(config), StandardCharsets.UTF_8);
-            List<String> args = List.of(
-                    resolvePythonBin(),
-                    getPythonMainPath().toString(),
-                    "save-preset",
-                    "--name",
-                    name,
-                    "--config",
-                    configPath.toString()
-            );
-            ProcessResult result = executeProcess(args, getWorkspaceRoot());
-            if (result.exitCode != 0) {
-                throw new IllegalStateException(result.stderr.isBlank() ? result.stdout : result.stderr);
-            }
-        } finally {
-            cleanup(workDir);
-        }
+        Path path = getPythonServiceDir().resolve("rca_presets.json");
+        Files.createDirectories(path.getParent());
+        Map<String, Object> presets = new java.util.LinkedHashMap<>(readPresetsFile());
+        presets.put(name, config);
+        Files.writeString(path, mapper.writerWithDefaultPrettyPrinter().writeValueAsString(presets), StandardCharsets.UTF_8);
     }
 
     public Map<String, Object> loadPreset(String name) throws IOException {
-        ensurePythonEntry();
-        Path workDir = Files.createTempDirectory("rca-preset-");
-        try {
-            Path jsonOutPath = workDir.resolve("preset.json");
-            List<String> args = List.of(
-                    resolvePythonBin(),
-                    getPythonMainPath().toString(),
-                    "load-preset",
-                    "--name",
-                    name,
-                    "--json-out",
-                    jsonOutPath.toString()
-            );
-            ProcessResult result = executeProcess(args, getWorkspaceRoot());
-            if (result.exitCode != 0) {
-                throw new IllegalStateException(result.stderr.isBlank() ? result.stdout : result.stderr);
-            }
-            if (!Files.exists(jsonOutPath)) {
-                throw new IllegalStateException("Preset output was not generated.");
-            }
-            return mapper.readValue(Files.readString(jsonOutPath, StandardCharsets.UTF_8), new TypeReference<>() {});
-        } finally {
-            cleanup(workDir);
+        Map<String, Object> presets = readPresetsFile();
+        Object config = presets.get(name);
+        if (config == null) {
+            throw new IllegalArgumentException("Preset not found: " + name);
         }
+        return mapper.convertValue(config, new TypeReference<>() {});
     }
 
     private void writeWorkbook(List<Map<String, Object>> rows, Path outputPath) throws IOException {

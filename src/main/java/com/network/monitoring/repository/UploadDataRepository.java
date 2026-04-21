@@ -14,6 +14,7 @@ public interface UploadDataRepository extends JpaRepository<UploadData, Long>, U
     List<UploadData> findDistinctByTechIsNotNullOrderByTechAsc();
     List<UploadData> findDistinctBySectorIdIsNotNullOrderBySectorIdAsc();
     List<UploadData> findDistinctByGroupsIsNotNullOrderByGroupsAsc();
+    List<UploadData> findAllByFileId(Long fileId);
     long countByFileId(Long fileId);
     long deleteByFileId(Long fileId);
     Page<UploadData> findAllByOrderByIdDesc(Pageable pageable);
